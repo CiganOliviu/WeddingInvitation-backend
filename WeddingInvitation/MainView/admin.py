@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import ConfirmAnswer
+from .models import ConfirmAnswer, GuestEnvironmentDetail
 
 class ConfirmAnswerAdmin(admin.ModelAdmin):
     list_display = ('user_name', 'submitted', 'answer_sent')
@@ -8,3 +8,4 @@ class ConfirmAnswerAdmin(admin.ModelAdmin):
         return obj.user.first_name + " " + obj.user.last_name
 
 admin.site.register(ConfirmAnswer, ConfirmAnswerAdmin)
+admin.site.register(GuestEnvironmentDetail)

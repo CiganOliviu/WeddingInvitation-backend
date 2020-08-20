@@ -1,20 +1,62 @@
 from django.shortcuts import render
 from django.views.generic import TemplateView
+from django.contrib.auth.mixins import LoginRequiredMixin
 
 from MainView.forms import InvitationForm
-from MainView.models import ConfirmAnswer
+from MainView.models import ConfirmAnswer, GuestEnvironmentDetail
 
-class InvitationView(TemplateView):
+class InvitationView(LoginRequiredMixin, TemplateView):
 
-    template_name = 'home/invitation.html'
+    template_name = 'home/invitation_form.html'
+    final_template_name = 'home/invitation.html'
+
+    def _add_user_if_missing(self, database_name, database_object):
+
+        if not database_name.objects.filter(user = database_object.user).exists():
+            process_query = database_name(user = database_object.user)
+            process_query.save()
+
+    def _did_the_user_respond(self, database_object):
+
+        if ConfirmAnswer.objects.filter(user = database_object.user, answer_sent = True).exists():
+            return True
+
+    def _return_guest_database_object(self, database_object):
+
+        result = GuestEnvironmentDetail.objects.filter(user = database_object.user)
+
+        return result
 
     def get(self, request):
 
         form = InvitationForm()
 
+        post = form.save(commit=False)
+        post.user = request.user
+
+        self._add_user_if_missing(ConfirmAnswer, post)
+
+        if self._did_the_user_respond(post):
+
+            self._add_user_if_missing(GuestEnvironmentDetail, post)
+
+            guests = self._return_guest_database_object(post)
+
+            args = { 'guests': guests }
+
+            return render(request, self.final_template_name, args)
+
         args = { 'form': form }
 
         return render(request, self.template_name, args)
+
+    def _replace_user_answer(self, database_object):
+
+        if ConfirmAnswer.objects.filter(user = database_object.user, answer_sent = False).exists():
+
+            process_query = ConfirmAnswer.objects.get(user = database_object.user)
+            process_query.answer_sent = True
+            process_query.save()
 
     def post(self, request):
 
@@ -25,17 +67,13 @@ class InvitationView(TemplateView):
             post = form.save(commit=False)
             post.user = request.user
 
-            if ConfirmAnswer.objects.filter(user=post.user).exists():
-                if not ConfirmAnswer.objects.get(user = post.user, answer_sent = True):
-                    post.save()
-            else:
-                post.save()
+            self._replace_user_answer (post)
 
             text = form.cleaned_data['answer_sent']
 
-        args = { 'form': form, 'text': text}
+        args = { 'text': text }
 
-        return render(request, self.template_name, args)
+        return render(request, self.final_template_name, args)
 
 def index(request):
 
