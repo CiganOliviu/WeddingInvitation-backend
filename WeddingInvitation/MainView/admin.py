@@ -9,3 +9,5 @@ class ConfirmAnswerAdmin(admin.ModelAdmin):
 
 admin.site.register(ConfirmAnswer, ConfirmAnswerAdmin)
 admin.site.register(GuestEnvironmentDetail)
+
+admin.site.site_header = "Wedding Invitation Administration Website"
