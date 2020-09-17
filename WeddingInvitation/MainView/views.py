@@ -72,6 +72,7 @@ class InvitationView(LoginRequiredMixin, TemplateView):
             self._add_user_if_missing(GuestEnvironmentDetail, post)
 
             guests = self._return_guest_database_object(post)
+            
             text = form.cleaned_data['answer_sent']
 
         args = { 'text': text, 'guests' : guests}
