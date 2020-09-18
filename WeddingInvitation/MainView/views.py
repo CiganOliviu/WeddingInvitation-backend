@@ -27,6 +27,12 @@ class InvitationView(LoginRequiredMixin, TemplateView):
 
         return result
 
+    def _return_answers_database_object(self, database_object):
+
+        result = ConfirmAnswer.objects.filter(user = database_object.user)
+
+        return result
+
     def get(self, request):
 
         form = InvitationForm()
@@ -41,8 +47,9 @@ class InvitationView(LoginRequiredMixin, TemplateView):
             self._add_user_if_missing(GuestEnvironmentDetail, post)
 
             guests = self._return_guest_database_object(post)
+            answers = self._return_answers_database_object(post)
 
-            args = { 'guests': guests }
+            args = { 'guests' : guests, 'answers' : answers }
 
             return render(request, self.final_template_name, args)
 
@@ -72,10 +79,13 @@ class InvitationView(LoginRequiredMixin, TemplateView):
             self._add_user_if_missing(GuestEnvironmentDetail, post)
 
             guests = self._return_guest_database_object(post)
-            
+            answers = self._return_answers_database_object(post)
+
+            args = { 'guests' : guests, 'answers' : answers }
+
             text = form.cleaned_data['answer_sent']
 
-        args = { 'text': text, 'guests' : guests}
+        args = { 'text': text, 'guests' : guests, 'answers' : answers}
 
         return render(request, self.final_template_name, args)
 
