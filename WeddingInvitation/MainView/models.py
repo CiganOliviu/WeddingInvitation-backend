@@ -29,4 +29,5 @@ class GuestEnvironmentDetail (models.Model):
     table_image = models.ImageField(upload_to = 'guests_tables_images/', blank = True)
 
     def __str__(self):
+        
         return self.user.first_name
